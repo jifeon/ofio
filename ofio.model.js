@@ -1,4 +1,4 @@
-define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.events'], function (Ofio) {
+define(['ofio/ofio', 'vendor/underscore', 'ofio/ofio.id', 'ofio/ofio.events'], function (Ofio) {
   var module = new Ofio.Module({
     name         : 'ofio.model',
     dependencies : arguments
@@ -26,12 +26,12 @@ define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.events'], function (Ofio) {
   };
 
   var init_attributes = function () {
-    var attrs = Object.create(this);
-    this.attributes.call(attrs);
-    Object.extend(attrs, this.options);
+    var attributes = Object.create(this);
+    this.attributes.call(attributes);
+    _.extend(attributes, this.options);
 
-    Object.keys(attrs).forEach(function (attr) {
-      this.create_attribute(attr, attrs[attr]);
+    Object.keys(attributes).forEach(function (attr) {
+      this.create_attribute(attr, attributes[attr]);
     }, this);
   };
 

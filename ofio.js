@@ -1,27 +1,71 @@
 define(function(){
-  Object.extend = function(obj1, obj2){
-    for (var prop in obj2) {
-      obj1[ prop ] = obj2[ prop ];
+  /**
+   * Copies all the properties of source into target.
+   * @param {Object} target
+   * @param {Object} source
+   * @return {Object} extended target
+   */
+  var merge = function(target, source){
+    for (var prop in source) {
+      target[prop] = source[prop];
     }
 
-    return obj1;
-  };
-
-  Object.merge = function(obj1, obj2){
-    var res = Object.extend({}, obj1);
-    return Object.extend(res, obj2);
+    return target;
   };
 
 
+  /**
+   * Returns a shallow-copied clone of the object. Any nested objects or arrays will be copied by reference, not
+   * duplicated
+   * @param {Object} object
+   * @return {*}
+   */
+  var clone = function(object){
+    return merge({}, object);
+  };
+
+
+  /**
+   * Logs the text into a browser console.
+   * @param {String} text
+   * @param {String} [level="log"] A name of console method to log, such as "log", "warn", "error" or "info"
+   */
   var log = function (text, level) {
     if (console) console[level || 'log']('Ofio: ' + text);
   };
 
 
+  /**
+   * Ofio is a library that provides good way to write a laconic code. Ofio allows you to separate the code into two
+   * different parts. It's classes and modules. Modules is an objects that merges into classes prototypes. It's a place
+   * for the code you can use many times in a different classes. You also can take out a code from the files into the
+   * modules to reduce the size of big classes.
+   *
+   * You specify a list of modules when describing a class. Classes can be inherited from another classes. Modules can
+   * have dependencies from another modules. Dependencies can be automatically resolved using requirejs library.
+   *
+   * Both classes and modules can have a special method named "init". It executes when instance is creating.
+   * Initialization of modules is before class initialization. "init" is the only method of modules that is never copied
+   * into classes prototypes.
+   * @param {Object} [params={}] Parameters for new class creation
+   * @param {Ofio.Module[]} [params.modules=[]] List of modules for the class
+   * @param {Function} [params.extend] Parent class for nesting
+   * @return {Function} Created class
+   * @constructor
+   */
   var Ofio = function(params){
     params = params || {};
 
+    /**
+     * Creating class
+     * @type {Function}
+     */
     this.new_class = this.create_class();
+
+    /**
+     * Modules included into the class
+     * @type {Object} keys are modules names, values are {@link Ofio.Module} instances
+     */
     this.modules = {};
     this.namespaces = {};
     this.included = {};
@@ -34,6 +78,10 @@ define(function(){
   };
 
 
+  /**
+   *
+   * @return {Function}
+   */
   Ofio.prototype.create_class = function(){
     var ofio = this;
 
@@ -42,7 +90,7 @@ define(function(){
         enumerable   : false,
         configurable : false,
         writable     : false,
-        value        : Object.merge(params)
+        value        : clone(params)
       });
 
       return ofio.init_class(this);
@@ -61,16 +109,16 @@ define(function(){
   };
 
 
-  Ofio.prototype.extend = function(extend){
-    if (typeof extend != "function") return;
+  Ofio.prototype.extend = function(parent){
+    if (typeof parent != "function") return;
 
-    this.new_class.prototype = extend.prototype;
+    this.new_class.prototype = parent.prototype;
     this.new_class.prototype.constructor = this.new_class;
-    this.new_class.parent = extend.prototype;
+    this.new_class.parent = parent.prototype;
 
-    if (typeof extend.ofio == 'object') {
-      this.modules = Object.merge(extend.ofio.modules, this.modules);
-      this.namespaces = extend.ofio.namespaces;
+    if (typeof parent.ofio == 'object') {
+      this.modules = merge(clone(parent.ofio.modules), this.modules);
+      this.namespaces = parent.ofio.namespaces;
     }
   };
 
@@ -150,7 +198,7 @@ define(function(){
       }
     });
 
-    Object.extend(this.config, this.options);
+    merge(this.config, this.options);
 
     var dependencies = {};
     Array.prototype.forEach.call(this.config.dependencies || [], function(module){
