@@ -74,6 +74,8 @@ define(function(){
     this.extend(params.extend);
     this.include_modules();
 
+    this.new_class.prototype.init = function(){};
+
     return this.new_class;
   };
 
@@ -112,7 +114,10 @@ define(function(){
   Ofio.prototype.extend = function(parent){
     if (typeof parent != "function") return;
 
-    this.new_class.prototype = parent.prototype;
+    var extend = function(){};
+    extend.prototype = parent.prototype;
+
+    this.new_class.prototype = new extend;
     this.new_class.prototype.constructor = this.new_class;
     this.new_class.parent = parent.prototype;
 
