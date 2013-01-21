@@ -61,6 +61,7 @@ define(function(){
      * @type {Function}
      */
     this.new_class = this.create_class();
+    this.parent_class = null;
 
     /**
      * Modules included into the class
@@ -113,6 +114,7 @@ define(function(){
 
   Ofio.prototype.extend = function(parent){
     if (typeof parent != "function") return;
+    this.parent_class = parent;
 
     var extend = function(){};
     extend.prototype = parent.prototype;
@@ -123,7 +125,7 @@ define(function(){
 
     if (typeof parent.ofio == 'object') {
       this.modules = merge(clone(parent.ofio.modules), this.modules);
-      this.namespaces = parent.ofio.namespaces;
+      this.namespaces = clone(parent.ofio.namespaces);
     }
   };
 
@@ -131,28 +133,32 @@ define(function(){
   Ofio.prototype.include_modules = function(modules){
     modules = modules || this.modules;
     var included = this.included;
+    var parent_ofio = this.parent_class && this.parent_class.ofio;
+    var parent_included = parent_ofio && parent_ofio.modules || {};
+    var prototype = this.new_class.prototype;
 
     for (var name in modules) {
       if (included[name]) continue;
       included[name] = true;
 
-      var module = modules[name];
+      var module = this.modules[name] = modules[name];
       this.include_modules(module.config.dependencies);
 
-      var extended = this.new_class.prototype;
-      if (module.config.namespace) {
-        var namespace_constructor = this.namespaces[module.config.namespace] = function(instance){
-          this.parent = instance;
-        };
-        extended = namespace_constructor.prototype;
-      }
-
-      for (var prop in module) {
-        if (prop == 'init') continue;
-        if (extended[prop] !== undefined) {
-          log('A property ' + prop + ' has redefined by module ' + module.config.name + '!', 'warn');
+      if (!parent_included[name]) {
+        var namespace = module.config.namespace;
+        if (namespace) {
+          var namespace_constructor = this.namespaces[namespace] = function(instance){
+            this.parent = instance;
+          };
+          namespace_constructor.prototype = module;
         }
-        extended[prop] = module[prop];
+
+        else for (var prop in module) {
+          if (prop == 'init') continue;
+          if (prototype[prop] !== undefined)
+            log('A property ' + prop + ' has redefined by module ' + module.config.name + '!', 'warn');
+          prototype[prop] = module[prop];
+        }
       }
 
       module.config.on_include.call(this.new_class.prototype, this.new_class);

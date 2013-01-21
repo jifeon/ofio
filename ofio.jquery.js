@@ -29,10 +29,10 @@ define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'vendor/jquery.min'], f
     this.undelegate_events();
     for (var key in events) {
       var method = events[key];
-      if (typeof method != 'function')
-        method = this[events[key]];
+      if (typeof method == 'string')
+        method = this[method];
 
-      if (!method)
+      if (typeof method != 'function')
         throw new Error('Method "' + key + '" does not exist');
 
       var match = key.match(event_splitter);
