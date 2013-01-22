@@ -36,34 +36,63 @@ define(['ofio/ofio', 'ofio/ofio.events'], function (Ofio) {
     };
 
     request.onsuccess = this.ready.bind(this);
-
     request.onupgradeneeded = this.upgrade_db.bind(this);
   };
 
 
   module.ready = function(event){
+    console.log('ready');
     this.db = event.target.result;
     this.parent.emit('idb_ready');
   };
 
 
   module.upgrade_db = function(event){
+    console.log('upgrade', event.oldVersion);
     this.db = event.target.result;
 
-    var versions = this.db_config.versions;
+    var versions = this.db_config.versions[this.db_config.name];
     for(var i = event.oldVersion + 1; i <= event.newVersion; i++)
       versions[i] && versions[i](this);
   };
 
 
   module.create_store = function (name, options) {
+    console.log('creating', name);
     this.db.createObjectStore.apply(this.db, arguments);
   };
 
+
   module.remove_db = function(callback){
+    console.log('removing');
     var request = indexedDB.deleteDatabase(this.db_config.name);
     request.onsuccess = callback;
     return request;
+  };
+
+
+  module.add = function(table, record, callback){
+    var store = this.db.transaction(table, 'readwrite').objectStore(table);
+    var request = store.add(record);
+    request.onsuccess = callback;
+    return request;
+  };
+
+
+  module.get_all = function(table, callback){
+    var records = [];
+    var store = this.db.transaction(table).objectStore(table);
+
+    store.openCursor().onsuccess = function(event) {
+      var cursor = event.target.result;
+      if (cursor) {
+        records.push(cursor.value);
+        cursor.continue();
+      }
+      else {
+        callback(records);
+      }
+    };
   };
 
   return module;
