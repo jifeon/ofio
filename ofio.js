@@ -61,6 +61,11 @@ define(function(){
      * @type {Function}
      */
     this.new_class = this.create_class();
+    
+    /**
+     * Parent class
+     * @type {Function|null}
+     */
     this.parent_class = null;
 
     /**
@@ -68,7 +73,17 @@ define(function(){
      * @type {Object} keys are modules names, values are {@link Ofio.Module} instances
      */
     this.modules = {};
+    
+    /**
+     * A hash containig namespaces constructors
+     * @type {Object}
+     */
     this.namespaces = {};
+    
+    /**
+     * 
+     * @type {Object}
+     */
     this.included = {};
 
     this.prepare_modules(params.modules);
