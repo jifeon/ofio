@@ -1,0 +1,26 @@
+{
+    "name": "ofio",
+    "description": "library that provides good way to write a laconic code",
+    "keywords": ["ofio", "modules", "namespaces", "oop"],
+    "homepage": "http://ofio.autodafe.ws",
+    "version": "0.0.1",
+    "author": "Andrey Balakirev <balakirev.andrey@gmail.com>",
+    "main": "./ofio.js",
+    "bugs": {
+        "url": "https://github.com/jifeon/ofio/issues",
+        "email": "jifeon@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "http://github.com/jifeon/ofio.git"
+    },
+    "directories": {
+        "lib": "."
+    },
+    "dependencies": {
+        "requirejs": "*"
+    },
+    "engines": {
+        "node": ">=0.8.0"
+    }
+}
