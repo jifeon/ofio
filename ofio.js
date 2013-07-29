@@ -1,3 +1,12 @@
+if (typeof define == 'undefined') {
+    /**
+     * @param {function:Ofio} cb
+     */
+    define = function (cb) {
+        module.exports = cb();
+    }
+}
+
 define(function () {
     /**
      * Copies all the properties of source into target.
@@ -36,11 +45,18 @@ define(function () {
         if (console) console[level || 'log']('Ofio: ' + text);
     };
 
-
+    /**
+     * @class ParentClass
+     */
     var ParentClass = function(){};
-    ParentClass.prototype.init = function () {};
 
-    var checkSuper = /xyz/.test(function(){return "xyz";}) ? /\b_super\b/ : /.*/;
+    /**
+     * @protected
+     * @constructor
+     */
+    ParentClass.prototype._init = function () {};
+
+    var checkSuper = /xyz/.test(String(function(){return "xyz";})) ? /\b_super\b/ : /.*/;
 
     var extend = function (options, proto) {
         if (proto === undefined) {
@@ -105,10 +121,11 @@ define(function () {
      * You specify a list of modules when describing a class. Classes can be inherited from another classes. Modules can
      * have dependencies from another modules. Dependencies can be automatically resolved using requirejs library.
      *
-     * Both classes and modules can have a special method named "init". It executes when instance is creating.
-     * Initialization of modules is before class initialization. "init" is the only method of modules that is never copied
+     * Both classes and modules can have a special method named "_init". It executes when instance is creating.
+     * Initialization of modules is before class initialization. "_init" is the only method of modules that is never copied
      * into classes prototypes.
      * @class Ofio
+     * @extends ParentClass
      * @param {Object} [params={}] Parameters for new class creation
      * @param {Ofio.Module[]} [params.modules=[]] List of modules for the class
      * @param {Function} [params.extend] Parent class for nesting
@@ -163,7 +180,7 @@ define(function () {
         var self = this;
 
         var newClass = function (params) {
-            Object.defineProperty(this, 'options', {
+            Object.defineProperty(this, '_options', {
                 enumerable: false,
                 configurable: false,
                 writable: false,
@@ -229,7 +246,7 @@ define(function () {
                 }
 
                 else for (var prop in module) {
-                    if (!module.hasOwnProperty(prop) || prop == 'init') continue;
+                    if (!module.hasOwnProperty(prop) || prop == '_init') continue;
                     if (prototype[prop] !== undefined)
                         log('A property ' + prop + ' has redefined by module ' + module.config.name + '!', 'warn');
                     prototype[prop] = module[prop];
@@ -243,7 +260,7 @@ define(function () {
     Ofio.prototype._initClass = function (instance) {
         this._initModules(instance);
 
-        return instance.init && instance.init() || instance;
+        return instance._init && instance._init() || instance;
     };
 
     Ofio.prototype._initModules = function (instance, modules, inited) {
@@ -263,14 +280,14 @@ define(function () {
             if (namespace)
                 context = instance[namespace] = new this.namespaces[namespace](instance);
 
-            module.init.call(context);
+            module._init.call(context);
         }
     };
 
 
     var Module = Ofio.Module = new Ofio;
 
-    Module.prototype.init = function () {
+    Module.prototype._init = function () {
         Object.defineProperty(this, "config", {
             enumerable: false,
             configurable: false,
@@ -284,7 +301,7 @@ define(function () {
             }
         });
 
-        merge(this.config, this.options);
+        merge(this.config, this._options);
 
         var dependencies = {};
         Array.prototype.forEach.call(this.config.dependencies || [], function (module) {
@@ -297,3 +314,4 @@ define(function () {
 
     return Ofio;
 });
+

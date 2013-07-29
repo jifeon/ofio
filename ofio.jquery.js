@@ -1,4 +1,4 @@
-define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'vendor/jquery.min'], function (Ofio) {
+define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'jquery'], function (Ofio) {
     var module = new Ofio.Module({
         name: 'ofio.jquery',
         dependencies: arguments
@@ -7,16 +7,16 @@ define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'vendor/jquery.min'], f
     var event_splitter = /^(\S+)\s*(.*)$/;
 
 
-    module.init = function () {
-        if (!this.options.$el && !this.options.el)
+    module._init = function () {
+        if (!this._options.$el && !this._options.el)
             this.$el = $(this.render());
         else
-            this.$el = this.options.$el || $(this.options.el);
+            this.$el = this._options.$el || $(this._options.el);
 
         this.el = this.$el[0];
         if (!this.el) this.log('`el` is undefined', 'warn', module);
 
-        this.delegate_events();
+        this._delegate_events();
     };
 
 
@@ -30,12 +30,15 @@ define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'vendor/jquery.min'], f
     };
 
 
-    module.delegate_events = function (events) {
-        events = events || (typeof this.events == 'function' ? this.events() : this.events);
+    module._delegate_events = function (events) {
+        events = events || this._events();
         if (!events) return;
 
-        this.undelegate_events();
         for (var key in events) {
+            if (!events.hasOwnProperty(key)) {
+                continue;
+            }
+
             var method = events[key];
             if (typeof method == 'string')
                 method = this[method];
@@ -62,7 +65,12 @@ define(['ofio/ofio', 'ofio/ofio.id', 'ofio/ofio.logger', 'vendor/jquery.min'], f
     };
 
 
-    module.undelegate_events = function () {
+    module._events = function(){
+        return null;
+    }
+
+
+    module._undelegate_events = function () {
         this.$el.off('.delegate_events' + this.id);
     };
 

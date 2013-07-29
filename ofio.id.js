@@ -5,7 +5,7 @@ define(['ofio/ofio'], function (Ofio) {
 
     var id = 0;
 
-    module.init = function () {
+    module._init = function () {
         this.id = id++;
     };
 
